@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react"
 const FIRST_DELAY_MS  = 10_000
 const REPEAT_MIN_MS   = 30_000
 const REPEAT_MAX_MS   = 45_000
-const CHASE_DURATION  = "3.5s"
+const CHASE_DURATION  = "6s"
 const LS_KEY          = "easter-egg-seen"
 
 export default function EasterEgg() {
@@ -72,7 +72,7 @@ export default function EasterEgg() {
           display: block;
           height: auto;
         }
-        .eg-owl    { width: 40px; }
+        .eg-owl    { width: 46px; }
         .eg-babbel { width: 45px; }
 
         @keyframes eg-chase {
