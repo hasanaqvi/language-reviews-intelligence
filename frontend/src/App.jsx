@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import Dashboard from "./pages/Dashboard"
 import Reviews from "./pages/Reviews"
+import EasterEgg from "./components/EasterEgg"
 import "./index.css"
 
 export default function App() {
@@ -75,6 +76,8 @@ export default function App() {
 
       {page === "dashboard" && <Dashboard onThemeClick={openTheme} darkMode={darkMode} />}
       {page === "reviews" && <Reviews initialTheme={selectedTheme} darkMode={darkMode} />}
+
+      <EasterEgg />
     </div>
   )
 }
