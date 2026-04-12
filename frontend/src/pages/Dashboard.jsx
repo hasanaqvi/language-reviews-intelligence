@@ -50,6 +50,9 @@ export default function Dashboard({ onThemeClick }) {
       <div>
         <h1 style={{ fontSize: "22px", fontWeight: "700", marginBottom: "4px" }}>Babbel Review Intelligence</h1>
         <p style={{ fontSize: "14px", color: "#6b7280" }}>App Store reviews — analysed and clustered by theme</p>
+        <p style={{ fontSize: "12px", color: "#9ca3af", marginTop: "6px", padding: "6px 12px", background: "#f8fafc", borderRadius: "6px", display: "inline-block", border: "1px solid #f1f5f9" }}>
+          This dashboard is a personal project built for learning purposes only and is notended for commercial use.
+        </p>
       </div>
 
       {stats && (
