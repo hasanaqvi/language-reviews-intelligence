@@ -243,7 +243,7 @@ export default function Dashboard({ onThemeClick, darkMode }) {
                 <BarChart data={stats.by_rating} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} vertical={false} />
                   <XAxis dataKey="rating" tick={{ fontSize: 12, fill: chartTick }} tickFormatter={v => v + "★"} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 12, fill: chartTick }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 12, fill: chartTick }} axisLine={false} tickLine={false} tickCount={5} domain={[0, dataMax => Math.ceil(dataMax / 100) * 100]} />
                   <Tooltip content={<ChartTooltip darkMode={darkMode} />} formatter={v => [v, "Reviews"]} />
                   <Bar dataKey="count" name="Reviews" fill={accentColor} radius={[4, 4, 0, 0]} />
                 </BarChart>
