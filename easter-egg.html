@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  EASTER EGG: Duo Owl chased by Babbel logo
+  ============================================================
+  PLUG-AND-PLAY INSTRUCTIONS
+  ──────────────────────────
+  Option A — Standalone demo
+    Open this file directly in a browser. Done.
+
+  Option B — Drop into an existing HTML page
+    1. Copy the <style> block into your <head> (or a .css file)
+    2. Copy the <div id="easter-egg"> block anywhere in <body>
+       (it uses position: fixed so location in the DOM
+       doesn't matter)
+    3. Copy the <script> block just before </body>
+    4. Replace the two src paths with your actual image URLs
+
+  Option C — React / Vite project
+    See the companion EasterEgg.jsx component at the bottom
+    of this file (in a comment block).
+
+  ASSETS REQUIRED
+  ───────────────
+  • duo-owl.png      (the Duolingo owl)
+  • babbel-logo.png  (the Babbel +B mark)
+  Place them wherever your static assets live and update the
+  two `src` attributes below accordingly.
+  ============================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easter Egg Preview</title>
+  <style>
+    /* ── Demo page backdrop ───────────────────────────────── */
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f8fafc;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: #6b7280;
+      font-size: 14px;
+    }
+  </style>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PASTE THIS <style> BLOCK INTO YOUR SITE'S <head>
+       ═══════════════════════════════════════════════════════ -->
+  <style>
+    /* ── Stage: the shared container that crosses the screen ── */
+    #easter-egg {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;                    /* gap between babbel and owl   */
+      pointer-events: none;        /* never blocks clicks           */
+      transform: translateX(-150px); /* parked off-screen left       */
+      will-change: transform;
+    }
+
+    /* ── Images ─────────────────────────────────────────────── */
+    #easter-egg img {
+      display: block;
+      height: auto;
+    }
+
+    #easter-owl    { width: 40px; }
+    #easter-babbel { width: 45px; }
+
+    /* ── Keyframe: horizontal chase across the full viewport ── */
+    @keyframes easter-chase {
+      from { transform: translateX(-150px); }
+      to   { transform: translateX(110vw);  }
+    }
+
+    /* ── Keyframe: gentle bob (simulates running / flapping) ── */
+    @keyframes easter-bob {
+      0%, 100% { transform: translateY(0);    }
+      50%       { transform: translateY(-4px); }
+    }
+
+    /* ── Triggered state ────────────────────────────────────── */
+    #easter-egg.is-running {
+      animation: easter-chase 3.5s linear forwards;
+    }
+
+    #easter-owl.is-running {
+      animation: easter-bob 280ms ease-in-out infinite;
+    }
+
+    #easter-babbel.is-running {
+      /* slight phase offset so they don't bob in perfect sync */
+      animation: easter-bob 280ms ease-in-out infinite 70ms;
+    }
+  </style>
+</head>
+<body>
+
+  <p>Babbel is chasing Duo. Wait up to 10 seconds for the first run…</p>
+  <p style="font-size:12px;">(On a real site the first trigger is 45–120 s after page load.)</p>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PASTE THIS <div> ANYWHERE IN YOUR <body>
+       ═══════════════════════════════════════════════════════ -->
+  <div id="easter-egg" aria-hidden="true">
+    <!-- Babbel is on the LEFT  → the chaser (behind)         -->
+    <img id="easter-babbel" src="babbel-logo.png" alt="">
+    <!-- Owl  is on the RIGHT → being chased (in front)       -->
+    <img id="easter-owl"    src="duo-owl.png"     alt="">
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PASTE THIS <script> JUST BEFORE YOUR </body>
+       ═══════════════════════════════════════════════════════ -->
+  <script>
+    (function () {
+      'use strict';
+
+      var stage  = document.getElementById('easter-egg');
+      var owl    = document.getElementById('easter-owl');
+      var babbel = document.getElementById('easter-babbel');
+
+      if (!stage || !owl || !babbel) return; // graceful no-op if DOM missing
+
+      function runChase() {
+        // Kick off the animations
+        stage.classList.add('is-running');
+        owl.classList.add('is-running');
+        babbel.classList.add('is-running');
+
+        // The chase animation ('easter-chase') is on #easter-egg.
+        // Listen for its end to clean up and schedule the next run.
+        function onChaseEnd(e) {
+          // Ignore bubbled events from child elements
+          if (e.target !== stage) return;
+
+          stage.removeEventListener('animationend', onChaseEnd);
+
+          // Remove classes — elements snap back off-screen left
+          // (both departure and arrival points are off-screen,
+          //  so the snap is invisible to the user)
+          stage.classList.remove('is-running');
+          owl.classList.remove('is-running');
+          babbel.classList.remove('is-running');
+
+          scheduleNext();
+        }
+
+        stage.addEventListener('animationend', onChaseEnd);
+      }
+
+      function scheduleNext() {
+        // Random delay: 45 – 120 seconds
+        var minMs = 45  * 1000;
+        var maxMs = 120 * 1000;
+        var delay = minMs + Math.random() * (maxMs - minMs);
+        setTimeout(runChase, delay);
+      }
+
+      // ── First run ────────────────────────────────────────────
+      // On a real site, use `scheduleNext()` for the full 45-120s wait.
+      // Here we use a short demo delay so you can see it immediately.
+      var isDemo = window.location.protocol === 'file:' ||
+                   window.location.hostname === 'localhost' ||
+                   window.location.hostname === '127.0.0.1';
+
+      if (isDemo) {
+        // Demo: fire after 2 seconds so you can see it right away
+        setTimeout(runChase, 2000);
+      } else {
+        // Production: random 45–120 s delay
+        scheduleNext();
+      }
+    })();
+  </script>
+
+</body>
+</html>
+
+<!--
+  ═══════════════════════════════════════════════════════════════
+  REACT COMPONENT (for Vite / CRA projects)
+  ───────────────────────────────────────────────────────────────
+  Drop EasterEgg.jsx into src/components/ and import it once in
+  your root App.jsx:  <EasterEgg />
+
+  The CSS class names and keyframes above must be in your global
+  stylesheet (index.css) for this to work.
+  ═══════════════════════════════════════════════════════════════
+
+  // src/components/EasterEgg.jsx
+  import { useEffect, useRef } from "react"
+
+  export default function EasterEgg() {
+    const stageRef  = useRef(null)
+    const owlRef    = useRef(null)
+    const babbelRef = useRef(null)
+    const timerRef  = useRef(null)
+
+    useEffect(() => {
+      function runChase() {
+        const stage  = stageRef.current
+        const owl    = owlRef.current
+        const babbel = babbelRef.current
+        if (!stage || !owl || !babbel) return
+
+        stage.classList.add("is-running")
+        owl.classList.add("is-running")
+        babbel.classList.add("is-running")
+
+        function onEnd(e) {
+          if (e.target !== stage) return
+          stage.removeEventListener("animationend", onEnd)
+          stage.classList.remove("is-running")
+          owl.classList.remove("is-running")
+          babbel.classList.remove("is-running")
+          schedule()
+        }
+
+        stage.addEventListener("animationend", onEnd)
+      }
+
+      function schedule() {
+        const delay = (45 + Math.random() * 75) * 1000
+        timerRef.current = setTimeout(runChase, delay)
+      }
+
+      schedule()
+      return () => clearTimeout(timerRef.current)
+    }, [])
+
+    return (
+      <div id="easter-egg" ref={stageRef} aria-hidden="true">
+        <img id="easter-babbel" ref={babbelRef} src="/babbel-logo.png" alt="" />
+        <img id="easter-owl"    ref={owlRef}    src="/duo-owl.png"     alt="" />
+      </div>
+    )
+  }
+-->
