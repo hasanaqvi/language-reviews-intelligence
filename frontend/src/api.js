@@ -1,6 +1,8 @@
 import axios from "axios"
 
-const api = axios.create({ baseURL: "http://127.0.0.1:8000" })
+const BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+
+const api = axios.create({ baseURL: BASE_URL })
 
 export const getThemeSummary = () => api.get("/themes/summary")
 export const getThemeReviews = (theme, limit=20, offset=0) => api.get("/themes/" + theme + "/reviews?limit=" + limit + "&offset=" + offset)
