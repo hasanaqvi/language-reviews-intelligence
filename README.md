@@ -103,6 +103,10 @@ To analyse a different app update the APPS list in backend/scraper.py
 with the new Google Play ID and App Store ID, then re-run the scraper
 and analyser.
 
+## Secrets
+
+Keep an eye on the bottom of the screen. Something may or may not be chasing something else across it. No spoilers.
+
 ## Why I built this
 
 Tools like AppFollow and Sensor Tower charge thousands per month to surface
