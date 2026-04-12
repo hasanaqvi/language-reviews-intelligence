@@ -90,6 +90,7 @@ export default function Reviews({ initialTheme }) {
                 <span>{r.store === "app_store" ? "App Store" : "Google Play"}</span>
                 <span>{r.country.toUpperCase()}</span>
                 {r.author && <span>{r.author}</span>}
+                {r.date && <span>{new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>}
               </div>
             </div>
             <p style={{ fontSize: "14px", color: "#374151", lineHeight: "1.6" }}>{r.text}</p>
