@@ -12,6 +12,7 @@ const THEME_LABELS = {
   navigation: "Navigation",
   progress_tracking: "Progress Tracking",
   personalization: "Personalization",
+  ai_features: "AI Features",
   other: "Other",
 }
 
