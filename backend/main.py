@@ -1,11 +1,21 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 from routers import reviews, themes, snapshots
+from scheduler import start_scheduler
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Language Reviews Intelligence API")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler = start_scheduler()
+    yield
+    scheduler.shutdown()
+
+
+app = FastAPI(title="Language Reviews Intelligence API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
