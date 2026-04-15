@@ -7,6 +7,8 @@ import nltk
 import re
 from collections import Counter
 
+AI_PATTERN = re.compile(r'\bai\b', re.IGNORECASE)
+
 nltk.download("punkt", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 nltk.download("stopwords", quiet=True)
@@ -65,6 +67,17 @@ THEMES = {
         "statistics", "history", "record", "milestone", "goal", "reward",
         "points", "level up", "improvement", "feedback",
     ],
+    "ai_features": [
+        "artificial intelligence", "ai-powered", "ai powered", "ai tutor",
+        "ai coach", "ai feature", "ai assistant", "ai chat",
+        "generative ai", "genai", "llm", "large language model",
+        "machine learning", "neural network", "deep learning",
+        "chatgpt", "gpt-4", "gpt4", "gpt-3", "gpt3", "openai",
+        "claude", "gemini", "copilot", "bard",
+        "chatbot", "conversational ai", "virtual assistant",
+        "voice recognition", "speech recognition",
+        "natural language processing", "nlp",
+    ],
 }
 
 sia = SentimentIntensityAnalyzer()
@@ -89,6 +102,10 @@ def classify_themes(text):
             if keyword in text_lower:
                 matched.append(theme)
                 break
+        # ai_features also matches standalone "ai" via word-boundary regex
+        if theme == "ai_features" and theme not in matched:
+            if AI_PATTERN.search(text):
+                matched.append(theme)
     return matched if matched else ["other"]
 
 
