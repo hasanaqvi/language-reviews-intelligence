@@ -123,7 +123,7 @@ def analyse_reviews():
     db = SessionLocal()
     print("Starting analysis...")
 
-    reviews = db.query(Review).filter(Review.language == "en").all()
+    reviews = db.query(Review).filter(Review.language.like("en%")).all()
     print(f"Analysing {len(reviews)} English reviews...")
 
     for i, review in enumerate(reviews):
