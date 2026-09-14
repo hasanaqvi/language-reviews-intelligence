@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import Dashboard from "./pages/Dashboard"
 import Reviews from "./pages/Reviews"
+import About from "./pages/About"
 import EasterEgg from "./components/EasterEgg"
 import "./index.css"
 
@@ -34,7 +35,7 @@ export default function App() {
         </span>
 
         <div style={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center", gap: "32px" }}>
-          {["dashboard", "reviews"].map(p => (
+          {["dashboard", "reviews", "about"].map(p => (
             <span
               key={p}
               onClick={() => setPage(p)}
@@ -76,6 +77,7 @@ export default function App() {
 
       {page === "dashboard" && <Dashboard onThemeClick={openTheme} darkMode={darkMode} />}
       {page === "reviews" && <Reviews initialTheme={selectedTheme} darkMode={darkMode} />}
+      {page === "about" && <About />}
 
       <EasterEgg />
     </div>
