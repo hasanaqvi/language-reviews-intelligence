@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { getThemeReviews } from "../api"
+import Loading, { LoadError } from "../components/Loading"
 
 const THEME_LABELS = {
   all: "All Themes",
@@ -39,6 +40,8 @@ export default function Reviews({ initialTheme }) {
   const [reviews, setReviews] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
   const [offset, setOffset] = useState(0)
   const limit = 20
 
@@ -51,15 +54,20 @@ export default function Reviews({ initialTheme }) {
     // the filters have changed again, or a stale response wins the race.
     let cancelled = false
     setLoading(true)
+    setLoadError(false)
     setOffset(0)
     getThemeReviews(theme, { limit, offset: 0, sort, dateFrom, dateTo }).then(r => {
       if (cancelled) return
       setReviews(r.data.reviews)
       setTotal(r.data.total)
       setLoading(false)
+    }).catch(() => {
+      if (cancelled) return
+      setLoadError(true)
+      setLoading(false)
     })
     return () => { cancelled = true }
-  }, [theme, sort, dateFrom, dateTo])
+  }, [theme, sort, dateFrom, dateTo, retryKey])
 
   function loadMore() {
     const newOffset = offset + limit
@@ -113,12 +121,15 @@ export default function Reviews({ initialTheme }) {
         )}
       </div>
 
-      <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px" }}>
-        {total.toLocaleString()} reviews in <strong style={{ color: "var(--text-primary)" }}>{THEME_LABELS[theme] || theme}</strong>
-        {(dateFrom || dateTo) && <span> between {dateFrom || "the beginning"} and {dateTo || "today"} (undated reviews excluded)</span>}
-      </p>
+      {!loading && !loadError && (
+        <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px" }}>
+          {total.toLocaleString()} reviews in <strong style={{ color: "var(--text-primary)" }}>{THEME_LABELS[theme] || theme}</strong>
+          {(dateFrom || dateTo) && <span> between {dateFrom || "the beginning"} and {dateTo || "today"} (undated reviews excluded)</span>}
+        </p>
+      )}
 
-      {loading && <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>Loading reviews…</p>}
+      {loading && <Loading label="Loading reviews…" />}
+      {loadError && <LoadError onRetry={() => setRetryKey(k => k + 1)} />}
 
       <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
         {reviews.map(r => (

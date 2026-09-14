@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { getThemeSummary, getStats, getRatingsOverTime, getThemeInsight } from "../api"
+import Loading, { LoadError } from "../components/Loading"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts"
 
 const THEME_LABELS = {
@@ -57,16 +58,19 @@ export default function Dashboard({ onThemeClick, darkMode }) {
   const [selected, setSelected] = useState(null)
   const [insight, setInsight] = useState(null)
   const [loadingInsight, setLoadingInsight] = useState(false)
+  const [loadError, setLoadError] = useState(false)
+  const [retryKey, setRetryKey] = useState(0)
 
   const chartGrid = darkMode ? "#334155" : "#f1f5f9"
   const chartTick = darkMode ? "#94a3b8" : "#6b7280"
   const accentColor = darkMode ? "#818cf8" : "#4f46e5"
 
   useEffect(() => {
-    getThemeSummary().then(r => setThemes(r.data))
-    getStats().then(r => setStats(r.data))
-    getRatingsOverTime().then(r => setTrend(r.data))
-  }, [])
+    setLoadError(false)
+    getThemeSummary().then(r => setThemes(r.data)).catch(() => setLoadError(true))
+    getStats().then(r => setStats(r.data)).catch(() => setLoadError(true))
+    getRatingsOverTime().then(r => setTrend(r.data)).catch(() => setLoadError(true))
+  }, [retryKey])
 
   async function handleThemeClick(theme) {
     setSelected(theme)
@@ -96,6 +100,9 @@ export default function Dashboard({ onThemeClick, darkMode }) {
         </p>
       </div>
 
+      {!stats && !loadError && <Loading label="Loading dashboard…" />}
+      {!stats && loadError && <LoadError onRetry={() => setRetryKey(k => k + 1)} />}
+
       {stats && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
           {[
@@ -112,6 +119,7 @@ export default function Dashboard({ onThemeClick, darkMode }) {
         </div>
       )}
 
+      {stats && (
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
         <div style={card}>
           <h2 style={{ fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "4px" }}>Theme clusters</h2>
@@ -256,6 +264,7 @@ export default function Dashboard({ onThemeClick, darkMode }) {
           )}
         </div>
       </div>
+      )}
 
       {trend.length > 0 && (
         <div style={card}>
