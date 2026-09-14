@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { getThemeReviews } from "../api"
 
 const THEME_LABELS = {
+  all: "All Themes",
   bugs_technical: "Bugs & Technical Issues",
   lesson_structure: "Lesson Structure",
   languages_available: "Languages Available",
@@ -21,8 +22,20 @@ const THEME_LABELS = {
 
 const THEMES = Object.keys(THEME_LABELS)
 
+const controlStyle = {
+  padding: "6px 12px",
+  borderRadius: "8px",
+  border: "1px solid var(--border-input)",
+  background: "var(--bg-card)",
+  color: "var(--text-secondary)",
+  fontSize: "13px",
+}
+
 export default function Reviews({ initialTheme }) {
-  const [theme, setTheme] = useState(initialTheme || "bugs_technical")
+  const [theme, setTheme] = useState(initialTheme || "all")
+  const [sort, setSort] = useState("newest")
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
   const [reviews, setReviews] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -34,18 +47,23 @@ export default function Reviews({ initialTheme }) {
   }, [initialTheme])
 
   useEffect(() => {
+    // Each filter change fires a fetch; ignore responses that arrive after
+    // the filters have changed again, or a stale response wins the race.
+    let cancelled = false
     setLoading(true)
     setOffset(0)
-    getThemeReviews(theme, limit, 0).then(r => {
+    getThemeReviews(theme, { limit, offset: 0, sort, dateFrom, dateTo }).then(r => {
+      if (cancelled) return
       setReviews(r.data.reviews)
       setTotal(r.data.total)
       setLoading(false)
     })
-  }, [theme])
+    return () => { cancelled = true }
+  }, [theme, sort, dateFrom, dateTo])
 
   function loadMore() {
     const newOffset = offset + limit
-    getThemeReviews(theme, limit, newOffset).then(r => {
+    getThemeReviews(theme, { limit, offset: newOffset, sort, dateFrom, dateTo }).then(r => {
       setReviews(prev => [...prev, ...r.data.reviews])
       setOffset(newOffset)
     })
@@ -76,8 +94,28 @@ export default function Reviews({ initialTheme }) {
         ))}
       </div>
 
+      <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap", marginBottom: "20px" }}>
+        <select value={sort} onChange={e => setSort(e.target.value)} style={controlStyle}>
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+        </select>
+        <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>From</span>
+        <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} style={controlStyle} />
+        <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>to</span>
+        <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} style={controlStyle} />
+        {(dateFrom || dateTo) && (
+          <button
+            onClick={() => { setDateFrom(""); setDateTo("") }}
+            style={{ ...controlStyle, color: "var(--accent-text)", fontWeight: "500" }}
+          >
+            Clear dates
+          </button>
+        )}
+      </div>
+
       <p style={{ fontSize: "14px", color: "var(--text-secondary)", marginBottom: "16px" }}>
         {total.toLocaleString()} reviews in <strong style={{ color: "var(--text-primary)" }}>{THEME_LABELS[theme] || theme}</strong>
+        {(dateFrom || dateTo) && <span> between {dateFrom || "the beginning"} and {dateTo || "today"} (undated reviews excluded)</span>}
       </p>
 
       {loading && <p style={{ color: "var(--text-muted)", fontSize: "14px" }}>Loading reviews…</p>}
