@@ -10,6 +10,7 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 def get_stats(db: Session = Depends(get_db)):
     total = db.query(Review).count()
     avg_rating = db.query(func.avg(Review.rating)).scalar()
+    last_scraped = db.query(func.max(Review.scraped_at)).scalar()
     by_store = db.query(Review.store, func.count(Review.id)).group_by(Review.store).all()
     by_rating = db.query(Review.rating, func.count(Review.id)).group_by(Review.rating).order_by(Review.rating).all()
     by_country = db.query(Review.country, func.count(Review.id)).group_by(Review.country).order_by(func.count(Review.id).desc()).limit(10).all()
@@ -17,6 +18,7 @@ def get_stats(db: Session = Depends(get_db)):
     return {
         "total": total,
         "avg_rating": round(float(avg_rating or 0), 2),
+        "last_scraped": last_scraped.isoformat() if last_scraped else None,
         "by_store": [{"store": s, "count": c} for s, c in by_store],
         "by_rating": [{"rating": r, "count": c} for r, c in by_rating],
         "by_country": [{"country": c, "count": n} for c, n in by_country],

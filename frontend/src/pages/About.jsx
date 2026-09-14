@@ -1,8 +1,17 @@
+import { useState, useEffect } from "react"
+import { getStats } from "../api"
+
 const section = { marginBottom: "28px" }
 const heading = { fontSize: "15px", fontWeight: "600", color: "var(--text-primary)", marginBottom: "8px" }
 const body = { fontSize: "14px", lineHeight: "1.7", color: "var(--text-secondary)", margin: 0 }
 
 export default function About() {
+  const [lastRun, setLastRun] = useState(null)
+
+  useEffect(() => {
+    getStats().then(r => setLastRun(r.data.last_scraped)).catch(() => {})
+  }, [])
+
   return (
     <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 32px" }}>
       <h1 style={{ fontSize: "22px", fontWeight: "700", color: "var(--text-primary)", marginBottom: "24px" }}>
@@ -17,6 +26,15 @@ export default function About() {
           in PostgreSQL. An analyser classifies each English review into product themes
           using curated keyword matching and scores its sentiment with VADER. The
           dashboard visualizes the resulting theme clusters, sentiment, and rating trends.
+          The dataset refreshes automatically every Monday via a scheduled pipeline run.
+          {lastRun && (
+            <>
+              {" "}Last data update:{" "}
+              <strong style={{ color: "var(--text-primary)" }}>
+                {new Date(lastRun).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+              </strong>.
+            </>
+          )}
         </p>
       </div>
 
