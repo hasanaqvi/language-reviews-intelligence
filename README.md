@@ -5,13 +5,17 @@ for any mobile app. Built to surface product insights from user feedback at scal
 
 Currently configured for Babbel — the language learning app.
 
+**Live at [language-reviews-intelligence.vercel.app](https://language-reviews-intelligence.vercel.app/)**
+— data refreshes automatically every Monday.
+
 ## What it does
 
-- Scrapes reviews from the Apple App Store across 8 markets
-- Classifies reviews into 10 product themes automatically
+- Scrapes reviews from the Apple App Store across 8 markets, with review dates
+- Classifies reviews into 14 product themes automatically
 - Scores sentiment per theme using VADER analysis
 - Extracts top keywords per theme
 - Displays everything in a live React dashboard
+- Browse all reviews or filter by theme, sort newest/oldest, and narrow to a custom date range
 
 ## Theme categories
 
@@ -25,14 +29,18 @@ Currently configured for Babbel — the language learning app.
 - Navigation
 - Progress tracking
 - Personalization
+- AI features
+- Learning path
+- Review and practice
+- Speech and pronunciation
 
 ## Tech stack
 
 - Backend: Python, FastAPI, SQLAlchemy, PostgreSQL
 - Scraping: iTunes RSS API, google-play-scraper
 - Analysis: NLTK, TextBlob, VADER sentiment
-- ontend: React, Vite, Recharts, Axios
-- Infrastructure: Docker (local), Railway (backend), Vercel (frontend)
+- Frontend: React, Vite, Recharts, Axios
+- Infrastructure: Docker (local), Neon (database), Render (backend), Vercel (frontend), GitHub Actions (weekly data refresh)
 
 ## Project structure
 
@@ -51,9 +59,11 @@ Currently configured for Babbel — the language learning app.
     │       └── snapshots.py
     └── frontend/
         └── src/
-            ├── pages/
-            │   ├── Dashboard.jsx   # Theme clusters and overview stats
-            │   └── Reviews.       # Navigation and routing
+            ├── App.jsx             # Navigation and page routing
+            └── pages/
+                ├── Dashboard.jsx   # Theme clusters and overview stats
+                ├── Reviews.jsx     # Browse, sort and date-filter reviews
+                └── About.jsx       # How it works and limitations
 
 ## Local setup
 
@@ -96,6 +106,23 @@ Currently configured for Babbel — the language learning app.
     cd frontend
     npm install
     npm run dev
+
+## Deployment
+
+Runs entirely on free tiers:
+
+- **Neon** hosts the PostgreSQL database.
+- **Render** runs the FastAPI backend (root directory `backend`, start command
+  `uvicorn main:app --host 0.0.0.0 --port $PORT`, env var `DATABASE_URL`).
+  The free instance spins down when idle, so the first request after a quiet
+  period takes up to a minute.
+- **Vercel** serves the frontend. `VITE_API_URL` points at the Render URL and
+  is baked in at build time — changing it requires a redeploy.
+- **GitHub Actions** runs the weekly scrape + analysis every Monday
+  (`.github/workflows/weekly-refresh.yml`, using a `DATABASE_URL` repo secret).
+  It can also be triggered manually from the Actions tab.
+
+Both Render and Vercel auto-deploy on every push to `main`.
 
 ## Switching to a different app
 
