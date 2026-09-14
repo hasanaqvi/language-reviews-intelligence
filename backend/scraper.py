@@ -1,7 +1,7 @@
 from google_play_scraper import reviews as gplay_reviews, Sort
 from database import SessionLocal, engine, Base
 from models import Review
-from datetime import datetime
+from datetime import datetime, timezone
 import requests
 import time
 
@@ -77,10 +77,21 @@ def scrape_google_play(app):
     return saved
 
 
+def parse_rss_date(entry):
+    # RSS "updated" label is ISO 8601 with offset, e.g. 2026-09-12T08:07:15-07:00;
+    # the reviews table stores naive UTC timestamps.
+    label = entry.get("updated", {}).get("label", "")
+    try:
+        return datetime.fromisoformat(label).astimezone(timezone.utc).replace(tzinfo=None)
+    except ValueError:
+        return None
+
+
 def scrape_app_store_rss(app):
     print(f"Scraping App Store RSS for {app['name']}...")
     db = SessionLocal()
     saved = 0
+    backfilled = 0
 
     for country in COUNTRIES:
         for page in range(1, 6):
@@ -107,10 +118,15 @@ def scrape_app_store_rss(app):
                         if not text:
                             continue
 
+                        review_date = parse_rss_date(entry)
+
                         existing = db.query(Review).filter(
                             Review.review_id == review_id
                         ).first()
                         if existing:
+                            if existing.review_date is None and review_date is not None:
+                                existing.review_date = review_date
+                                backfilled += 1
                             continue
 
                         review = Review(
@@ -121,7 +137,7 @@ def scrape_app_store_rss(app):
                             rating=int(rating_str),
                             text=text,
                             author=entry.get("author", {}).get("name", {}).get("label", ""),
-                            review_date=None,
+                            review_date=review_date,
                             language=detect_language(text),
                             country=country,
                         )
@@ -136,7 +152,7 @@ def scrape_app_store_rss(app):
                 db.rollback()
                 break
 
-    print(f"App Store: saved {saved} new reviews")
+    print(f"App Store: saved {saved} new reviews, backfilled dates on {backfilled}")
     db.close()
     return saved
 
