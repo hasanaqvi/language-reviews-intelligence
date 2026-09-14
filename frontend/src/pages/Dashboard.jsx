@@ -14,6 +14,9 @@ const THEME_LABELS = {
   progress_tracking: "Progress Tracking",
   personalization: "Personalization",
   ai_features: "AI Features",
+  learning_path: "Learning Path",
+  review_practice: "Review & Practice",
+  speech_pronunciation: "Speech & Pronunciation",
   other: "Other",
 }
 

@@ -8,6 +8,8 @@ import re
 from collections import Counter
 
 AI_PATTERN = re.compile(r'\bai\b', re.IGNORECASE)
+# Word-boundary so "path" doesn't match "pathetic" / "sympathetic"
+PATH_PATTERN = re.compile(r'\bpaths?\b', re.IGNORECASE)
 
 nltk.download("punkt", quiet=True)
 nltk.download("punkt_tab", quiet=True)
@@ -78,6 +80,28 @@ THEMES = {
         "voice recognition", "speech recognition",
         "natural language processing", "nlp",
     ],
+    # SLP (structured learning path) themes: how the course is sequenced and
+    # guided, whether learners can consolidate, and the speech exercises.
+    "learning_path": [
+        "learning path", "learning journey", "roadmap", "road map",
+        "structured", "well structured", "curriculum", "syllabus",
+        "next lesson", "what to learn next", "where to start", "guided",
+        "guidance", "in order", "lesson order", "skip ahead", "linear",
+        "locked", "unlock",
+    ],
+    "review_practice": [
+        "review lesson", "review session", "review feature", "reviewing",
+        "practice", "practise", "repetition", "spaced repetition",
+        "flashcard", "flash card", "vocabulary review", "vocab review",
+        "refresher", "revisit", "reinforce", "retention", "remember words",
+        "forget", "memorize", "memorise",
+    ],
+    "speech_pronunciation": [
+        "pronunciation", "pronounce", "speaking exercise", "speech",
+        "speak", "microphone", "mic ", "voice recognition", "my voice",
+        "listening", "accent", "audio", "hear", "sound quality",
+        "conversation practice", "dialogue", "dialog",
+    ],
 }
 
 sia = SentimentIntensityAnalyzer()
@@ -105,6 +129,10 @@ def classify_themes(text):
         # ai_features also matches standalone "ai" via word-boundary regex
         if theme == "ai_features" and theme not in matched:
             if AI_PATTERN.search(text):
+                matched.append(theme)
+        # learning_path also matches standalone "path"/"paths"
+        if theme == "learning_path" and theme not in matched:
+            if PATH_PATTERN.search(text):
                 matched.append(theme)
     return matched if matched else ["other"]
 
